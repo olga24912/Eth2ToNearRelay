@@ -15,11 +15,18 @@ pub fn get_body_from_json(json_str: &str) -> serde_json::Result<BeaconBlockBody<
     serde_json::from_str(json_str)
 }
 
-pub fn body_json_from_block_json(block_json_str: std::string::String) -> std::string::String {
+pub fn body_json_from_block_json(block_json_str: &std::string::String) -> std::string::String {
     let v: Value = serde_json::from_str(&block_json_str).unwrap();
     let body_json_str = serde_json::to_string(&v["data"]["message"]["body"]).unwrap();
     body_json_str
 }
+
+pub fn header_json_from_rpc_res(json_str: &std::string::String) -> std::string::String {
+    let v: Value = serde_json::from_str(&json_str).unwrap();
+    let hjson_str = serde_json::to_string(&v["data"]["header"]["message"]).unwrap();
+    hjson_str
+}
+
 
 //https://docs.rs/reqwest/0.11.10/reqwest/struct.Response.html
 pub async fn json_from_rpc_request(url: &str) -> std::string::String {
@@ -28,7 +35,7 @@ pub async fn json_from_rpc_request(url: &str) -> std::string::String {
 
 pub async fn get_header_from_rpc(block_id: &str) -> serde_json::Result<BeaconBlockHeader> {
     let url = format!("https://lodestar-kiln.chainsafe.io/eth/v1/beacon/headers/{}", block_id);
-    let json_str = json_from_rpc_request(&url).await;
+    let json_str = header_json_from_rpc_res(&json_from_rpc_request(&url).await);
     get_header_from_json(&json_str)
 }
 
@@ -36,7 +43,7 @@ pub async fn get_body_from_rpc(block_id: &str) -> serde_json::Result<BeaconBlock
     let url = format!("https://lodestar-kiln.chainsafe.io/eth/v2/beacon/blocks/{}", block_id);
     get_body_from_json(
         &body_json_from_block_json(
-           json_from_rpc_request(&url).await))
+           &json_from_rpc_request(&url).await))
 }
 
 pub fn build_merkle_tree_for_body(beacon_body: &BeaconBlockBody<MainnetEthSpec>) -> Result<MerkleTree, BeaconStateError>  {
@@ -136,7 +143,7 @@ mod tests {
         };
     }
 
-   #[test]
+    #[test]
     fn test_get_json_from_rpc() {
         let mut path_exmp_json = std::env::current_exe().unwrap();
         path_exmp_json.pop();
@@ -148,6 +155,15 @@ mod tests {
         let rpc_json_str = aw!(crate::json_from_rpc_request(url));
 
         assert_eq!(rpc_json_str, file_json_str.trim());
+    }
+
+    #[test]
+    fn test_rpc_body_header() {
+        let body = aw!(crate::get_body_from_rpc("741888")).unwrap();
+        let header = aw!(crate::get_header_from_rpc("741888")).unwrap();
+
+        let mtree = crate::build_merkle_tree_for_body(&body).unwrap();
+        assert_eq!(mtree.hash(), header.body_root);
     }
 }
 
