@@ -55,14 +55,14 @@ pub fn build_merkle_tree_for_body(beacon_body: &BeaconBlockBody<MainnetEthSpec>)
     Ok(MerkleTree::create(&leaves, 4))
 }
 
-pub fn get_eth1_data_proof(mtree: MerkleTree) -> (H256, Vec<H256>) {
+pub fn get_eth1_data_proof(mtree: &MerkleTree) -> (H256, Vec<H256>) {
     mtree.generate_proof(1, 4)
 }
 
 pub async fn get_eth1_data_proof_from_rpc(block_id: &str) -> (H256, Vec<H256>) {
     let body = get_body_from_rpc(block_id).await.unwrap();
     let mtree = build_merkle_tree_for_body(&body).unwrap();
-    get_eth1_data_proof(mtree)
+    get_eth1_data_proof(&mtree)
 }
 
 pub fn check_eth1_data_proof(eth1data_hash: H256, proof: &[H256; 4], body_hash: H256) -> bool {
@@ -108,4 +108,27 @@ mod tests {
 
         assert_eq!(format!("{:?}", body.eth1_data().deposit_root), "0x138eaf6e97aaf4447a7bf83f6338bb15b70c0d0dd5f412e649e9956178b2025e");
     }
+
+    #[test]
+    fn test_body_root() {
+        let mut path_exmp_json = std::env::current_exe().unwrap();
+        path_exmp_json.pop();
+        path_exmp_json.push("../../../../source/body_exmp.json");
+        println!("{:?}", path_exmp_json);
+
+        let json_str = std::fs::read_to_string(path_exmp_json).expect("Unable to read file");
+
+        let body = crate::get_body_from_json(&json_str).unwrap();
+
+        let mtree = crate::build_merkle_tree_for_body(&body).unwrap();
+        assert_eq!(format!("{:?}", mtree.hash()), "0x1906eb5417e2ff500a7c48c0704138b340f7d04c9ce7df8d213ad35232a4ff60");
+
+        use tree_hash::TreeHash;
+        let proof = crate::get_eth1_data_proof(&mtree);
+        assert_eq!(body.eth1_data().tree_hash_root(), proof.0);
+
+        assert!(crate::check_eth1_data_proof(proof.0, proof.1.as_slice().try_into().unwrap(), mtree.hash()))
+
+    }
 }
+
