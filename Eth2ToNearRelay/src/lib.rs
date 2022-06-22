@@ -55,17 +55,17 @@ pub fn build_merkle_tree_for_body(beacon_body: &BeaconBlockBody<MainnetEthSpec>)
     Ok(MerkleTree::create(&leaves, 4))
 }
 
-pub fn get_Eth1Data_proof(mtree: MerkleTree) -> (H256, Vec<H256>) {
+pub fn get_eth1_data_proof(mtree: MerkleTree) -> (H256, Vec<H256>) {
     mtree.generate_proof(1, 4)
 }
 
-pub async fn get_Eth1Data_proof_from_rpc(block_id: &str) -> (H256, Vec<H256>) {
+pub async fn get_eth1_data_proof_from_rpc(block_id: &str) -> (H256, Vec<H256>) {
     let body = get_body_from_rpc(block_id).await.unwrap();
     let mtree = build_merkle_tree_for_body(&body).unwrap();
-    get_Eth1Data_proof(mtree)
+    get_eth1_data_proof(mtree)
 }
 
-pub fn check_Eth1Data_proof(eth1data_hash: H256, proof: &[H256; 4], body_hash: H256) -> bool {
+pub fn check_eth1_data_proof(eth1data_hash: H256, proof: &[H256; 4], body_hash: H256) -> bool {
     merkle_proof::verify_merkle_proof(eth1data_hash, proof, 4, 1, body_hash)
 }
 
@@ -73,8 +73,39 @@ pub fn check_Eth1Data_proof(eth1data_hash: H256, proof: &[H256; 4], body_hash: H
 mod tests {
     #[test]
     fn test_get_header_from_json() {
+        let header_json_str = r#"
+        {
+            "slot": "0",
+            "proposer_index": "1",
+            "parent_root": "0x1cfedbc04788917c188bdab08bf1ed4ece4f352782b61989e142a211fe876c4c",
+            "state_root": "0xc40e5fae29997182dbafa0e091d41b27d9bbd6ac388df271e9224d3c0240017f",
+            "body_root": "0xb4d27c714e935a2970033c00ebb1d756336ded865e84fd22bec3395971158ab6"
+        }
+        "#;
+
+        let bheader = crate::get_header_from_json(header_json_str).unwrap();
+
+        assert_eq!(bheader.slot, 0);
+        assert_eq!(bheader.proposer_index, 1);
+        assert_eq!(bheader.body_root[0], 0xb4);
+        assert_eq!(format!("{:?}", bheader.body_root), "0xb4d27c714e935a2970033c00ebb1d756336ded865e84fd22bec3395971158ab6");
+        assert_eq!(format!("{:?}", bheader.parent_root), "0x1cfedbc04788917c188bdab08bf1ed4ece4f352782b61989e142a211fe876c4c");
+        assert_eq!(format!("{:?}", bheader.state_root), "0xc40e5fae29997182dbafa0e091d41b27d9bbd6ac388df271e9224d3c0240017f");
     }
 
+    #[test]
     fn test_get_body_from_json() {
+        let mut path_exmp_json = std::env::current_exe().unwrap();
+        path_exmp_json.pop();
+        path_exmp_json.push("../../../..");
+        path_exmp_json.push("source");
+        path_exmp_json.push("body_exmp.json");
+        println!("{:?}", path_exmp_json);
+
+        let json_str = std::fs::read_to_string(path_exmp_json).expect("Unable to read file");
+
+        let body = crate::get_body_from_json(&json_str).unwrap();
+
+        assert_eq!(format!("{:?}", body.eth1_data().deposit_root), "0x138eaf6e97aaf4447a7bf83f6338bb15b70c0d0dd5f412e649e9956178b2025e");
     }
 }

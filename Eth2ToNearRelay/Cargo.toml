@@ -1,5 +1,5 @@
 [package]
-name = "Eth2ToNearRelay"
+name = "eth2_to_near_relay"
 version = "0.1.0"
 edition = "2021"
 

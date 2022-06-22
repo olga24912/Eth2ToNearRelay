@@ -3,18 +3,6 @@
 version = 3
 
 [[package]]
-name = "Eth2ToNearRelay"
-version = "0.1.0"
-dependencies = [
- "ethereum-types",
- "merkle_proof",
- "reqwest",
- "serde_json",
- "tree_hash",
- "types",
-]
-
-[[package]]
 name = "ahash"
 version = "0.7.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -394,6 +382,18 @@ dependencies = [
  "smallvec",
  "tree_hash",
  "typenum",
+]
+
+[[package]]
+name = "eth2_to_near_relay"
+version = "0.1.0"
+dependencies = [
+ "ethereum-types",
+ "merkle_proof",
+ "reqwest",
+ "serde_json",
+ "tree_hash",
+ "types",
 ]
 
 [[package]]
