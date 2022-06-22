@@ -127,8 +127,27 @@ mod tests {
         let proof = crate::get_eth1_data_proof(&mtree);
         assert_eq!(body.eth1_data().tree_hash_root(), proof.0);
 
-        assert!(crate::check_eth1_data_proof(proof.0, proof.1.as_slice().try_into().unwrap(), mtree.hash()))
+        assert!(crate::check_eth1_data_proof(proof.0, proof.1.as_slice().try_into().unwrap(), mtree.hash()));
+    }
 
+    macro_rules! aw {
+        ($e:expr) => {
+            tokio_test::block_on($e)
+        };
+    }
+
+   #[test]
+    fn test_get_json_from_rpc() {
+        let mut path_exmp_json = std::env::current_exe().unwrap();
+        path_exmp_json.pop();
+        path_exmp_json.push("../../../../source/block1_exmp.json");
+
+        let file_json_str = std::fs::read_to_string(path_exmp_json).expect("Unable to read file");
+
+        let url = "https://lodestar-kiln.chainsafe.io/eth/v2/beacon/blocks/741888";
+        let rpc_json_str = aw!(crate::json_from_rpc_request(url));
+
+        assert_eq!(rpc_json_str, file_json_str.trim());
     }
 }
 
