@@ -6,12 +6,24 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-types = { path = "../ext/types" }
-tree_hash = { path = "../ext/tree_hash" }
-merkle_proof = { path = "../ext/merkle_proof" }
+types =  { git = "https://github.com/sigp/lighthouse", rev = "564d7da656803f5e06e53a303972580be54500bf"}
+tree_hash = { git = "https://github.com/sigp/lighthouse", rev = "564d7da656803f5e06e53a303972580be54500bf"}
+merkle_proof = { git = "https://github.com/sigp/lighthouse", rev = "564d7da656803f5e06e53a303972580be54500bf"}
 serde_json = "1.0.74"
 ethereum-types = "0.12.1"
 reqwest = "*"
 
 [dev-dependencies]
 tokio-test = "*"
+
+[patch]
+[patch.crates-io]
+fixed-hash = { git = "https://github.com/paritytech/parity-common", rev="df638ab0885293d21d656dc300d39236b69ce57d" }
+warp = { git = "https://github.com/macladson/warp", rev="7e75acc368229a46a236a8c991bf251fe7fe50ef" }
+eth2_ssz = { git = "https://github.com/sigp/lighthouse", rev = "564d7da656803f5e06e53a303972580be54500bf"}
+eth2_ssz_derive = { git = "https://github.com/sigp/lighthouse", rev = "564d7da656803f5e06e53a303972580be54500bf"}
+eth2_ssz_types = { git = "https://github.com/sigp/lighthouse", rev = "564d7da656803f5e06e53a303972580be54500bf"}
+eth2_hashing = { git = "https://github.com/sigp/lighthouse", rev = "564d7da656803f5e06e53a303972580be54500bf"}
+tree_hash = { git = "https://github.com/sigp/lighthouse", rev = "564d7da656803f5e06e53a303972580be54500bf"}
+tree_hash_derive = { git = "https://github.com/sigp/lighthouse", rev = "564d7da656803f5e06e53a303972580be54500bf"}
+eth2_serde_utils = { git = "https://github.com/sigp/lighthouse", rev = "564d7da656803f5e06e53a303972580be54500bf"}
